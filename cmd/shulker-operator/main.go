@@ -31,9 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	shulkermciov1alpha1 "shulkermc.io/m/v2/api/v1alpha1"
-	"shulkermc.io/m/v2/controllers"
-	"shulkermc.io/m/v2/internal/greetings"
+	shulkermciov1alpha1 "github.com/iamblueslime/shulker/api/v1alpha1"
+	"github.com/iamblueslime/shulker/internal/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -66,15 +65,24 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	greetings.PrintGreetings("shulker-operator")
-
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "e5135490.shulkermc.io",
+		LeaderElectionID:       "b3355872.shulkermc.io",
+		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
+		// when the Manager ends. This requires the binary to immediately end when the
+		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
+		// speeds up voluntary leader transitions as the new leader don't have to wait
+		// LeaseDuration time first.
+		//
+		// In the default scaffold provided, the program ends immediately after
+		// the manager stops, so would be fine to enable this option. However,
+		// if you are doing or is intended to do any operation such as perform cleanups
+		// after the manager stops then its usage might be unsafe.
+		// LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -88,18 +96,18 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "MinecraftCluster")
 		os.Exit(1)
 	}
+	if err = (&controllers.ProxyReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Proxy")
+		os.Exit(1)
+	}
 	if err = (&controllers.ProxyDeploymentReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ProxyDeployment")
-		os.Exit(1)
-	}
-	if err = (&controllers.MinecraftServerDeploymentReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "MinecraftServerDeployment")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

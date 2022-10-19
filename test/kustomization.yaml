@@ -1,0 +1,3 @@
+resources:
+- bases/cluster.yaml
+- bases/proxy-public.yaml

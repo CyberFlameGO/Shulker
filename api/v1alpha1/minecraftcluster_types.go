@@ -17,119 +17,36 @@ limitations under the License.
 package v1alpha1
 
 import (
-	corev1 "k8s.io/api/core/v1"
-	meta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// MinecraftClusterSpec defines the desired state of MinecraftCluster
+type MinecraftClusterSpec struct {
+}
+
+// MinecraftClusterStatus defines the observed state of MinecraftCluster
+type MinecraftClusterStatus struct {
+	// Number of proxies.
+	Proxies int32 `json:"proxies"`
+
+	// Number of servers.
+	Servers int32 `json:"servers"`
+}
+
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.conditions[?(@.type==\"Ready\")].status"
 //+kubebuilder:printcolumn:name="Proxies",type="number",JSONPath=".status.proxies"
 //+kubebuilder:printcolumn:name="Servers",type="number",JSONPath=".status.servers"
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
-//+kubebuilder:resource:shortName={"smc"},categories=all
+//+kubebuilder:resource:shortName={"skrmc"},categories=all
 
-// MinecraftCluster is the Schema for the MinecraftCluster API
+// MinecraftCluster is the Schema for the minecraftclusters API
 type MinecraftCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   MinecraftClusterSpec   `json:"spec,omitempty"`
 	Status MinecraftClusterStatus `json:"status,omitempty"`
-}
-
-// Defines the defired state of a MinecraftCluster. Most, to not
-// say all, fields configurable in a Minecraft Cluster can be
-// configured in this CRD.
-type MinecraftClusterSpec struct {
-	// Configuration of the Limbo Minecraft Server Deployment
-	// of this Minecraft Cluster.
-	//+kubebuilder:default={enabled: true, replicas: 1}
-	LimboSpec MinecraftClusterLimboSpec `json:"limboSpec"`
-
-	// Configuration of the proxy synchronization layer using
-	// Redis and RedisBungee.
-	//+kubebuilder:default={enabled: false}
-	RedisSync MinecraftClusterRedisSyncSpec `json:"redisSync"`
-}
-
-type MinecraftClusterLimboSpec struct {
-	// Whether to create a Limbo deployment for this
-	// Minecraft Cluster.
-	//+kubebuilder:default=true
-	Enabled bool `json:"enabled"`
-
-	// Number of Limbo servers to run.
-	//+kubebuilder:default=1
-	Replicas int `json:"replicas"`
-
-	// URL of the schematic the Limbo should serve.
-	//+kubebuilder:validation:Required
-	SchematicUrl string `json:"schematicUrl,omitempty"`
-
-	// The position the player should spawn on.
-	//+kubebuilder:validation:Required
-	SpawnPosition string `json:"spawnPosition,omitempty"`
-
-	// The desired compute resource requirements of Pods in the Minecraft
-	// Server.
-	//+kubebuilder:default={limits: {cpu: "500m", memory: "512Mi"}, requests: {cpu: "128m", memory: "128Mi"}}
-	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
-
-	// Affinity scheduling rules to be applied on created Pods.
-	Affinity *corev1.Affinity `json:"affinity,omitempty"`
-}
-
-type MinecraftClusterRedisSyncSpec struct {
-	// Whether to enable Redis synchronization for the proxies
-	// using RedisBungee.
-	//+kubebuilder:default=false
-	Enabled bool `json:"enabled"`
-
-	// Name of the Kubernetes service allowing connections
-	// for the proxies.
-	//+kubebuilder:validation:Required
-	ServiceName string `json:"serviceName,omitempty"`
-
-	// Name of the Kubernetes secret containing the Redis
-	// credentials to use. Must contains a `username` and a
-	// `password` keys.
-	//+kubebuilder:validation:Required
-	SecretName string `json:"secretName,omitempty"`
-
-	// Number of the Redis database to use.
-	//+kubebuilder:default=0
-	Database int `json:"database,omitempty"`
-}
-
-type MinecraftClusterStatusCondition string
-
-const (
-	ClusterReadyCondition MinecraftClusterStatusCondition = "Ready"
-)
-
-// MinecraftClusterStatus defines the observed state of MinecraftCluster
-type MinecraftClusterStatus struct {
-	// Conditions represent the latest available observations of a
-	// MinecraftCluster object.
-	//+kubebuilder:validation:Required
-	Conditions []metav1.Condition `json:"conditions"`
-
-	// Number of proxies.
-	Proxies int32 `json:"proxies"`
-
-	// Number of servers inside the server pool.
-	Servers int32 `json:"servers"`
-}
-
-func (s *MinecraftClusterStatus) SetCondition(condition MinecraftClusterStatusCondition, status metav1.ConditionStatus, reason string, message string) {
-	meta.SetStatusCondition(&s.Conditions, metav1.Condition{
-		Type:    string(condition),
-		Status:  status,
-		Reason:  reason,
-		Message: message,
-	})
 }
 
 //+kubebuilder:object:root=true
@@ -141,8 +58,11 @@ type MinecraftClusterList struct {
 	Items           []MinecraftCluster `json:"items"`
 }
 
+// MinecraftClusterRef is to be used on resources referencing
+// a MinecraftCluster.
 type MinecraftClusterRef struct {
-	// Name of the Minecraft Cluster.
+	// Name of the MinecraftCluster Kubernetes object owning
+	// this resource.
 	//+kubebuilder:validation:Required
 	Name string `json:"name,omitempty"`
 }
