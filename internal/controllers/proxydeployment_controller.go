@@ -108,7 +108,6 @@ func (r *ProxyDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		proxiesToCreate := int(proxyDeployment.Spec.Replicas) - len(matchingProxies.Items)
 		for i := 0; i < proxiesToCreate; i += 1 {
 			proxyId := common.RandomResourceId(6)
-
 			proxy := shulkermciov1alpha1.Proxy{}
 
 			labels := r.getProxyLabelsWithTemplateHash(proxyDeployment, templateHash)

@@ -3,7 +3,7 @@ name: ci
 on: pull_request
 
 env:
-  TARGET_GOLANG_VERSION: '1.17'
+  TARGET_GOLANG_VERSION: '1.19'
 
 jobs:
   test:

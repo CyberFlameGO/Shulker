@@ -118,8 +118,16 @@ func GetConfigMapDataFromConfigSpec(spec *shulkermciov1alpha1.ProxyConfiguration
 	configMapData := make(map[string]string)
 
 	configMapData["init-fs.sh"] = trimScript(`
-		cp -H -r $SHULKER_CONFIG_DIR/* $SHULKER_DATA_DIR/ && \
 		if [ -e "$SHULKER_CONFIG_DIR/server-icon.png" ]; then cat $SHULKER_CONFIG_DIR/server-icon.png | base64 -d > $SHULKER_DATA_DIR/server-icon.png; fi
+		if [ -e "$SHULKER_CONFIG_DIR/config.yml" ]; then cp "$SHULKER_CONFIG_DIR/config.yml" "$SHULKER_DATA_DIR/config.yml"; fi
+	`)
+
+	configMapData["liveness.sh"] = trimScript(`
+	
+	`)
+
+	configMapData["readiness.sh"] = trimScript(`
+	
 	`)
 
 	if spec.ServerIcon != "" {
