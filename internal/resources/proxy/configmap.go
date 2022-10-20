@@ -122,14 +122,6 @@ func GetConfigMapDataFromConfigSpec(spec *shulkermciov1alpha1.ProxyConfiguration
 		if [ -e "$SHULKER_CONFIG_DIR/config.yml" ]; then cp "$SHULKER_CONFIG_DIR/config.yml" "$SHULKER_DATA_DIR/config.yml"; fi
 	`)
 
-	configMapData["liveness.sh"] = trimScript(`
-	
-	`)
-
-	configMapData["readiness.sh"] = trimScript(`
-	
-	`)
-
 	if spec.ServerIcon != "" {
 		configMapData["server-icon.png"] = spec.ServerIcon
 	} else {

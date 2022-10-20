@@ -66,44 +66,79 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 				},
 			},
 		},
-		Containers: []corev1.Container{{
-			Image: "itzg/bungeecord:latest",
-			Name:  "proxy",
-			Ports: []corev1.ContainerPort{{
-				Name:          "minecraft",
-				ContainerPort: 25577,
-			}},
-			Env: b.getEnv(),
-			// LivenessProbe: &corev1.Probe{
-			// 	ProbeHandler: corev1.ProbeHandler{
-			// 		Exec: &corev1.ExecAction{
-			// 			Command: []string{proxyHealthCommand},
-			// 		},
-			// 	},
-			// 	InitialDelaySeconds: 10,
-			// 	PeriodSeconds:       10,
-			// },
-			// ReadinessProbe: &corev1.Probe{
-			// 	ProbeHandler: corev1.ProbeHandler{
-			// 		Exec: &corev1.ExecAction{
-			// 			Command: []string{proxyHealthCommand},
-			// 		},
-			// 	},
-			// 	InitialDelaySeconds: 10,
-			// 	PeriodSeconds:       10,
-			// },
-			SecurityContext: b.getSecurityContext(),
-			VolumeMounts: []corev1.VolumeMount{
-				{
-					Name:      "proxy-server",
-					MountPath: proxyServerDir,
-				},
-				{
-					Name:      "proxy-tmp",
-					MountPath: "/tmp",
+		Containers: []corev1.Container{
+			{
+				Image: "itzg/bungeecord:latest",
+				Name:  "proxy",
+				Ports: []corev1.ContainerPort{{
+					Name:          "minecraft",
+					ContainerPort: 25577,
+				}},
+				Env: b.getEnv(),
+				// LivenessProbe: &corev1.Probe{
+				// 	ProbeHandler: corev1.ProbeHandler{
+				// 		Exec: &corev1.ExecAction{
+				// 			Command: []string{proxyHealthCommand},
+				// 		},
+				// 	},
+				// 	InitialDelaySeconds: 10,
+				// 	PeriodSeconds:       10,
+				// },
+				// ReadinessProbe: &corev1.Probe{
+				// 	ProbeHandler: corev1.ProbeHandler{
+				// 		Exec: &corev1.ExecAction{
+				// 			Command: []string{proxyHealthCommand},
+				// 		},
+				// 	},
+				// 	InitialDelaySeconds: 10,
+				// 	PeriodSeconds:       10,
+				// },
+				SecurityContext: b.getSecurityContext(),
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "proxy-server",
+						MountPath: proxyServerDir,
+					},
+					{
+						Name:      "proxy-tmp",
+						MountPath: "/tmp",
+					},
 				},
 			},
-		}},
+			{
+				Image: "ghcr.io/iamblueslime/shulker-operator:latest",
+				Name:  "drainer",
+				Ports: []corev1.ContainerPort{{
+					Name:          "minecraft",
+					ContainerPort: 25577,
+				}},
+				Env: []corev1.EnvVar{
+					{
+						Name: "POD_NAMESPACE",
+						ValueFrom: &corev1.EnvVarSource{
+							FieldRef: &corev1.ObjectFieldSelector{
+								FieldPath: "metadata.namespace",
+							},
+						},
+					},
+					{
+						Name: "POD_NAME",
+						ValueFrom: &corev1.EnvVarSource{
+							FieldRef: &corev1.ObjectFieldSelector{
+								FieldPath: "metadata.name",
+							},
+						},
+					},
+				},
+				SecurityContext: b.getSecurityContext(),
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "proxy-tmp",
+						MountPath: "/tmp",
+					},
+				},
+			},
+		},
 		RestartPolicy: corev1.RestartPolicyOnFailure,
 		Volumes: []corev1.Volume{
 			{
