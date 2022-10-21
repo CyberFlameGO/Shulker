@@ -32,11 +32,11 @@ jobs:
           java-version: ${{ env.TARGET_JAVA_VERSION }}
           cache: 'gradle'
 
-      - name: Derive Nx Git boundaries
-        uses: nrwl/nx-set-shas@v3
-
       - name: Install Node.js dependencies
         run: npm ci
 
       - name: Run tests
-        run: npx nx affected --target=test --parallel=3 --ci
+        uses: mansagroup/nrwl-nx-action@v3
+        with:
+          targets: test
+          parallel: 3

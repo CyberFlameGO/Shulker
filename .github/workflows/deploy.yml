@@ -56,10 +56,10 @@ jobs:
             type=raw,value=latest
 
       - name: Publish images
-        uses: mansagroup/nrwl-nx-action@main
+        uses: mansagroup/nrwl-nx-action@v3
         with:
           targets: publish-docker
-          parralel: 2
+          parallel: 2
           args: -- "${{ steps.docker-metadata.outputs.tags }}" "${{ steps.docker-metadata.outputs.labels }}"
 
   publish-maven:
@@ -81,5 +81,11 @@ jobs:
           java-version: ${{ env.TARGET_JAVA_VERSION }}
           cache: 'gradle'
 
-      - name: Derive Nx Git boundaries
-        uses: nrwl/nx-set-shas@v3
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Publish packages
+        uses: mansagroup/nrwl-nx-action@v3
+        with:
+          targets: publish-maven
+          parallel: 3
