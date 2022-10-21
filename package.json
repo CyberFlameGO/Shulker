@@ -9,14 +9,14 @@
     "tools:install": "bash scripts/download_tools.sh",
     "crd:install": "kustomize build config/crd | kubectl apply -f -",
     "crd:uninstall": "kustomize build config/crd | kubectl delete -f -",
-    "gen:crd": "controller-gen rbac:roleName=manager-role crd webhook paths='./...' output:crd:artifacts:config=config/crd/bases",
-    "gen"
+    "config:gen": "bash scripts/generate_config.sh"
   },
   "devDependencies": {
     "nx": "15.0.0",
     "prettier": "2.6.2"
   },
   "workspaces": [
-    "packages/*"
+    "apps/*",
+    "libs/*"
   ]
 }
