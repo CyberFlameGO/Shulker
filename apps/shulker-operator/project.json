@@ -5,7 +5,7 @@
   "targets": {
     "build": {
       "executor": "nx:run-commands",
-      "outputs": ["dist/apps/shulker-operator", "dist/apps/shulker-operator/shulker-operator"],
+      "outputs": ["dist/apps/shulker-operator"],
       "options": {
         "command": "go build -o ../../dist/apps/shulker-operator/shulker-operator ./src/main.go",
         "cwd": "apps/shulker-operator"

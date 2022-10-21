@@ -5,7 +5,7 @@
   "targets": {
     "build": {
       "executor": "nx:run-commands",
-      "outputs": ["dist/apps/shulker-drainer", "dist/apps/shulker-drainer/shulker-drainer"],
+      "outputs": ["dist/apps/shulker-drainer"],
       "options": {
         "command": "go build -o ../../dist/apps/shulker-drainer/shulker-drainer ./src/main.go",
         "cwd": "apps/shulker-drainer"

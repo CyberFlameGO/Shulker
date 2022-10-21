@@ -1,0 +1,97 @@
+configure(subprojects.findAll {
+    !['apps', 'libs'].contains(it.name)
+}) {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+
+    group = 'io.shulkermc'
+
+    it.buildDir = "$rootDir/dist/apps/$it.name"
+
+    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    compileJava.options.encoding = 'UTF-8'
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+
+    dependencies {
+        testImplementation 'junit:junit:4.13.2'
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = project.name
+                from components.java
+
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+
+                pom {
+                    name = project.name
+                    // description = 'A concise description of my library'
+                    url = "https://github.com/shulker"
+
+                    /*licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }*/
+
+                    developers {
+                        developer {
+                            id = 'iamblueslime'
+                            name = 'Jérémy Levilain'
+                            email = 'jeremy@jeremylvln.fr'
+                        }
+                    }
+
+                    scm {
+                        connection = 'scm:git:git://github.com/shulker.git'
+                        developerConnection = 'scm:git:ssh://github.com/shulker.git'
+                        url = "https://github.com/shulker"
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/shulker"
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+    }
+
+    signing {
+        useGpgCmd()
+        sign publishing.publications.mavenJava
+    }
+
+    javadoc {
+        if(JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+    }
+}
