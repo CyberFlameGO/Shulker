@@ -57,7 +57,7 @@ jobs:
         uses: mansagroup/nrwl-nx-action@main
         with:
           targets: publish-docker
-          maxParralel: 2
+          parralel: 2
           args: -- "${{ steps.docker-metadata.outputs.tags }}" "${{ steps.docker-metadata.outputs.labels }}"
 
   publish-maven:
