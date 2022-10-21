@@ -37,11 +37,16 @@ jobs:
         with:
           node-version: ${{ env.TARGET_NODE_VERSION }}
 
+      - name: Install Node.js dependencies
+        run: npm ci
+
       - name: Prepare Docker metadata
         id: docker-metadata
         uses: docker/metadata-action@v4
         with:
           images: ghcr.io/iamblueslime/##SHULKER_APP##
+          sep-tags: ","
+          sep-labels: ","
           tags: |
             type=ref,event=branch
             type=sha,format=long
