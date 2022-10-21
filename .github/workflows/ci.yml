@@ -35,5 +35,8 @@ jobs:
       - name: Derive Nx Git boundaries
         uses: nrwl/nx-set-shas@v3
 
+      - name: Install Node.js dependencies
+        run: npm ci
+
       - name: Run tests
         run: npx nx affected --target=test --parallel=3 --ci

@@ -45,8 +45,8 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ghcr.io/iamblueslime/##SHULKER_APP##
-          sep-tags: ","
-          sep-labels: ","
+          sep-tags: ";;;"
+          sep-labels: ";;;"
           tags: |
             type=ref,event=branch
             type=sha,format=long
