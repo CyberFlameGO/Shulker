@@ -49,7 +49,7 @@ jobs:
             type=raw,value=latest
 
       - name: Publish images
-        uses: mansagroup/nrwl-nx-action@v2
+        uses: mansagroup/nrwl-nx-action@main
         with:
           targets: publish-docker
           maxParralel: 2
