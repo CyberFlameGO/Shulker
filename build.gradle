@@ -1,5 +1,5 @@
 configure(subprojects.findAll {
-    !['apps', 'libs'].contains(it.name)
+    !['plugins'].contains(it.name)
 }) {
     apply plugin: 'java'
     apply plugin: 'idea'
@@ -9,7 +9,7 @@ configure(subprojects.findAll {
 
     group = 'io.shulkermc'
 
-    it.buildDir = "$rootDir/dist/apps/$it.name"
+    it.buildDir = "$rootDir/dist/plugins/$it.name"
 
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
     compileJava.options.encoding = 'UTF-8'

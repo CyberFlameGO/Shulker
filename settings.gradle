@@ -1,2 +1,2 @@
 rootProject.name = "shulker"
-include ':apps:shulker-proxy-agent'
+include ':plugins:shulker-proxy-agent'
