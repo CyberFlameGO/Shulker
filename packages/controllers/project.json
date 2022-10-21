@@ -1,0 +1,17 @@
+{
+  "root": "packages/controllers",
+  "sourceRoot": "packages/controllers/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "go fmt ./...",
+          "go vet ./..."
+        ],
+        "cwd": "packages/controllers"
+      }
+    }
+  }
+}

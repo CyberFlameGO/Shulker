@@ -1,1 +1,0 @@
-cmd/shulker-operator/main.go

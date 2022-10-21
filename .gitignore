@@ -1,26 +1,40 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
 
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-bin
-testbin/*
-Dockerfile.cross
+# compiled output
+dist
+tmp
+/out-tsc
 
-# Test binary, build with `go test -c`
-*.test
+# dependencies
+node_modules
+scripts/.tools/
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-# Kubernetes Generated files - skip generated files, except for vendored files
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
-!vendor/**/zz_generated.*
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
 
-# editor and IDE paraphernalia
-.idea
-*.swp
-*.swo
-*~
+# System Files
+.DS_Store
+Thumbs.db

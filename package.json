@@ -1,0 +1,22 @@
+{
+  "name": "shulker",
+  "version": "0.0.0",
+  "license": "GPL",
+  "private": true,
+  "scripts": {
+    "build": "nx run-many --target=build --all",
+    "postinstall": "npm run tools:install",
+    "tools:install": "bash scripts/download_tools.sh",
+    "crd:install": "kustomize build config/crd | kubectl apply -f -",
+    "crd:uninstall": "kustomize build config/crd | kubectl delete -f -",
+    "gen:crd": "controller-gen rbac:roleName=manager-role crd webhook paths='./...' output:crd:artifacts:config=config/crd/bases",
+    "gen"
+  },
+  "devDependencies": {
+    "nx": "15.0.0",
+    "prettier": "2.6.2"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
