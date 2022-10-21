@@ -29,6 +29,12 @@
         ],
         "cwd": "apps/shulker-drainer"
       }
+    },
+    "publish-docker": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bash scripts/publish_docker.sh shulker-drainer"
+      }
     }
   },
   "tags": ["lang:go"],

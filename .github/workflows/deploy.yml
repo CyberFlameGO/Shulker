@@ -10,15 +10,13 @@ permissions:
   contents: read
   packages: write
 
+env:
+  TARGET_NODE_VERSION: '16'
+  TARGET_JAVA_VERSION: '17'
+
 jobs:
-  build:
+  publish-docker:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        app:
-          - shulker-operator
-          - shulker-drainer
 
     steps:
       - name: Checkout
@@ -34,22 +32,47 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Use Node.js ${{ env.TARGET_NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.TARGET_NODE_VERSION }}
+
       - name: Prepare Docker metadata
         id: docker-metadata
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/iamblueslime/${{ matrix.app }}
+          images: ghcr.io/iamblueslime/##SHULKER_APP##
           tags: |
             type=ref,event=branch
             type=sha,format=long
             type=sha
             type=raw,value=latest
 
-      - name: Build and push
-        uses: docker/build-push-action@v2
+      - name: Publish images
+        uses: mansagroup/nrwl-nx-action@v2
         with:
-          context: .
-          file: cmd/${{ matrix.app }}/Dockerfile
-          push: true
-          tags: ${{ steps.docker-metadata.outputs.tags }}
-          labels: ${{ steps.docker-metadata.outputs.labels }}
+          targets: publish-docker
+          maxParralel: 2
+          args: -- "${{ steps.docker-metadata.outputs.tags }}" "${{ steps.docker-metadata.outputs.labels }}"
+
+  publish-maven:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ env.TARGET_NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.TARGET_NODE_VERSION }}
+
+      - name: Use Java ${{ env.TARGET_JAVA_VERSION }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: adopt
+          java-version: ${{ env.TARGET_JAVA_VERSION }}
+          cache: 'gradle'
+
+      - name: Derive Nx Git boundaries
+        uses: nrwl/nx-set-shas@v3

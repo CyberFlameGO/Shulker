@@ -15,6 +15,12 @@
       "options": {
         "command": "gradle :plugins:shulker-proxy-agent:test"
       }
+    },
+    "publish-maven": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "gradle :plugins:shulker-proxy-agent:publish"
+      }
     }
   },
   "tags": ["lang:java"]

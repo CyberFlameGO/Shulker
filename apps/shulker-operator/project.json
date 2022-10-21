@@ -29,6 +29,12 @@
         ],
         "cwd": "apps/shulker-operator"
       }
+    },
+    "publish-docker": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bash scripts/publish_docker.sh shulker-operator"
+      }
     }
   },
   "tags": ["lang:go"],

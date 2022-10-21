@@ -7,11 +7,11 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 RUN go mod download
 
-COPY packages/crds packages/crds
-COPY packages/shulker-drainer packages/shulker-drainer
+COPY libs/crds libs/crds
+COPY apps/shulker-drainer apps/shulker-drainer
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
-  go build -a -o shulker-drainer packages/shulker-drainer/src/main.go
+  go build -a -o shulker-drainer apps/shulker-drainer/src/main.go
 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
