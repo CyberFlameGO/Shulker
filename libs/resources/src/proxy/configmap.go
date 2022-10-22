@@ -83,6 +83,7 @@ type configYml struct {
 	IpForward               bool                       `yaml:"ip_forward"`
 	PreventProxyConnections bool                       `yaml:"prevent_proxy_connections"`
 	EnforceSecureProfile    bool                       `yaml:"enforce_secure_profile"`
+	LogPings                bool                       `yaml:"log_pings"`
 }
 
 func getConfigYmlFile(spec *shulkermciov1alpha1.ProxyConfigurationSpec) (string, error) {
@@ -109,6 +110,7 @@ func getConfigYmlFile(spec *shulkermciov1alpha1.ProxyConfigurationSpec) (string,
 		IpForward:               true,
 		PreventProxyConnections: true,
 		EnforceSecureProfile:    true,
+		LogPings:                false,
 	}
 
 	out, err := yaml.Marshal(&configYml)
@@ -123,25 +125,22 @@ func GetConfigMapDataFromConfigSpec(spec *shulkermciov1alpha1.ProxyConfiguration
 	configMapData := make(map[string]string)
 
 	configMapData["init-fs.sh"] = trimScript(`
-		#!/bin/bash
+		#!/bin/sh
 		set -euo pipefail
-		cp "$SHULKER_CONFIG_DIR/probe-liveness.sh" "$SHULKER_DATA_DIR/probe-liveness.sh"; chmod +x "$SHULKER_DATA_DIR/probe-liveness.sh"
-		cp "$SHULKER_CONFIG_DIR/probe-readiness.sh" "$SHULKER_DATA_DIR/probe-readiness.sh"; chmod +x "$SHULKER_DATA_DIR/probe-readiness.sh"
+
+		cp "$SHULKER_CONFIG_DIR/probe-readiness.sh" "$SHULKER_DATA_DIR/probe-readiness.sh"
 		if [ -e "$SHULKER_CONFIG_DIR/server-icon.png" ]; then cat $SHULKER_CONFIG_DIR/server-icon.png | base64 -d > $SHULKER_DATA_DIR/server-icon.png; fi
 		if [ -e "$SHULKER_CONFIG_DIR/config.yml" ]; then cp "$SHULKER_CONFIG_DIR/config.yml" "$SHULKER_DATA_DIR/config.yml"; fi
-	`)
-
-	configMapData["probe-liveness.sh"] = trimScript(`
-		#!/bin/bash
-		set -euo pipefail
-		bash /health.sh
+		mkdir -p "${SHULKER_DATA_DIR}/plugins"
+		(cd "${SHULKER_DATA_DIR}/plugins" && wget https://maven.jeremylvln.fr/artifactory/shulker/io/shulkermc/shulker-proxy-agent/0.0.1/shulker-proxy-agent-0.0.1.jar)
 	`)
 
 	configMapData["probe-readiness.sh"] = trimScript(`
-		#!/bin/bash
-		set -euo pipefail
-		if ! test -f "${SHULKER_DRAIN_LOCK_DIR}/no-drain"; then exit 1; fi
-		bash /health.sh
+	#!/bin/sh
+	set -euo pipefail
+
+	if [ -f "/tmp/drain-lock" ]; then echo "Drain lock found" && exit 1; fi
+	bash /health.sh
 	`)
 
 	if spec.ServerIcon != "" {

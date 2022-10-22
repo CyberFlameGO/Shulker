@@ -21,8 +21,8 @@ type MinecraftClusterResourceBuilder struct {
 func (b *MinecraftClusterResourceBuilder) ResourceBuilders() ([]common.ResourceBuilder, []common.ResourceBuilder) {
 	builders := []common.ResourceBuilder{
 		b.MinecraftClusterProxyServiceAccount(),
-		b.MinecraftClusterProxyWatchRole(),
-		b.MinecraftClusterProxyWatchRoleBinding(),
+		b.MinecraftClusterProxyRole(),
+		b.MinecraftClusterProxyRoleBinding(),
 	}
 	dirtyBuilders := []common.ResourceBuilder{}
 
@@ -33,12 +33,12 @@ func (b *MinecraftClusterResourceBuilder) getProxyServiceAccountName() string {
 	return fmt.Sprintf("%s-proxy", b.Instance.Name)
 }
 
-func (b *MinecraftClusterResourceBuilder) getProxyWatchRoleName() string {
-	return fmt.Sprintf("%s-proxy-watch", b.Instance.Name)
+func (b *MinecraftClusterResourceBuilder) getProxyRoleName() string {
+	return fmt.Sprintf("%s-proxy", b.Instance.Name)
 }
 
-func (b *MinecraftClusterResourceBuilder) getProxyWatchRoleBindingName() string {
-	return fmt.Sprintf("%s-proxy-watch", b.Instance.Name)
+func (b *MinecraftClusterResourceBuilder) getProxyRoleBindingName() string {
+	return fmt.Sprintf("%s-proxy", b.Instance.Name)
 }
 
 func (b *MinecraftClusterResourceBuilder) getLabels() map[string]string {

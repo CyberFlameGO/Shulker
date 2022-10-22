@@ -7,7 +7,6 @@ package resources
 
 import (
 	"fmt"
-	"path"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,9 +44,9 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 	pod.Spec = corev1.PodSpec{
 		InitContainers: []corev1.Container{
 			{
-				Image:   "busybox:stable",
+				Image:   "alpine:latest",
 				Name:    "init-fs",
-				Command: []string{"ash", fmt.Sprintf("%s/init-fs.sh", proxyConfigDir)},
+				Command: []string{"sh", fmt.Sprintf("%s/init-fs.sh", proxyConfigDir)},
 				Env: []corev1.EnvVar{
 					{
 						Name:  "SHULKER_CONFIG_DIR",
@@ -84,7 +83,7 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 				LivenessProbe: &corev1.Probe{
 					ProbeHandler: corev1.ProbeHandler{
 						Exec: &corev1.ExecAction{
-							Command: []string{path.Join(proxyServerDir, "probe-liveness.sh")},
+							Command: []string{"bash", "/health.sh"},
 						},
 					},
 					InitialDelaySeconds: 10,
@@ -93,7 +92,7 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 				ReadinessProbe: &corev1.Probe{
 					ProbeHandler: corev1.ProbeHandler{
 						Exec: &corev1.ExecAction{
-							Command: []string{path.Join(proxyServerDir, "probe-readiness.sh")},
+							Command: []string{"bash", fmt.Sprintf("%s/probe-readiness.sh", proxyServerDir)},
 						},
 					},
 					InitialDelaySeconds: 10,
@@ -113,39 +112,6 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 					{
 						Name:      "proxy-tmp",
 						MountPath: "/tmp",
-					},
-				},
-			},
-			{
-				Image: "ghcr.io/iamblueslime/shulker-drainer:latest",
-				Name:  "drainer",
-				Env: []corev1.EnvVar{
-					{
-						Name: "POD_NAMESPACE",
-						ValueFrom: &corev1.EnvVarSource{
-							FieldRef: &corev1.ObjectFieldSelector{
-								FieldPath: "metadata.namespace",
-							},
-						},
-					},
-					{
-						Name: "POD_NAME",
-						ValueFrom: &corev1.EnvVarSource{
-							FieldRef: &corev1.ObjectFieldSelector{
-								FieldPath: "metadata.name",
-							},
-						},
-					},
-					{
-						Name:  "SHULKER_DRAIN_LOCK_DIR",
-						Value: proxyDrainLockDir,
-					},
-				},
-				SecurityContext: b.getSecurityContext(),
-				VolumeMounts: []corev1.VolumeMount{
-					{
-						Name:      "proxy-drain-lock",
-						MountPath: proxyDrainLockDir,
 					},
 				},
 			},
@@ -230,11 +196,15 @@ func getVersionEnvFromVersionChannel(channel shulkermciov1alpha1.ProxyDeployment
 func (b *ProxyResourcePodBuilder) getEnv() []corev1.EnvVar {
 	env := []corev1.EnvVar{
 		{
-			Name:  "SHULKER_DRAIN_LOCK_DIR",
-			Value: proxyDrainLockDir,
+			Name: "SHULKER_PROXY_NAMESPACE",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.namespace",
+				},
+			},
 		},
 		{
-			Name: "SERVER_ID",
+			Name: "SHULKER_PROXY_NAME",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
 					FieldPath: "metadata.name",

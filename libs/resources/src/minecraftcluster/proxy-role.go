@@ -16,32 +16,39 @@ import (
 	shulkermciov1alpha1 "github.com/iamblueslime/shulker/libs/crds/v1alpha1"
 )
 
-type MinecraftClusterProxyWatchRoleBuilder struct {
+type MinecraftClusterProxyRoleBuilder struct {
 	*MinecraftClusterResourceBuilder
 }
 
-func (b *MinecraftClusterResourceBuilder) MinecraftClusterProxyWatchRole() *MinecraftClusterProxyWatchRoleBuilder {
-	return &MinecraftClusterProxyWatchRoleBuilder{b}
+func (b *MinecraftClusterResourceBuilder) MinecraftClusterProxyRole() *MinecraftClusterProxyRoleBuilder {
+	return &MinecraftClusterProxyRoleBuilder{b}
 }
 
-func (b *MinecraftClusterProxyWatchRoleBuilder) Build() (client.Object, error) {
+func (b *MinecraftClusterProxyRoleBuilder) Build() (client.Object, error) {
 	return &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      b.getProxyWatchRoleName(),
+			Name:      b.getProxyRoleName(),
 			Namespace: b.Instance.Namespace,
 			Labels:    b.getLabels(),
 		},
 	}, nil
 }
 
-func (b *MinecraftClusterProxyWatchRoleBuilder) Update(object client.Object) error {
+// io.fabric8.kubernetes.client.KubernetesClientException: Failure executing: GET at: https://10.128.64.1/apis/shulkermc.io/v1alpha1/proxies?fieldSelector=metadata.name%3Dpublic-7f96749547-mxlfje
+
+func (b *MinecraftClusterProxyRoleBuilder) Update(object client.Object) error {
 	role := object.(*rbacv1.Role)
 
 	role.Rules = []rbacv1.PolicyRule{
 		{
 			APIGroups: []string{shulkermciov1alpha1.GroupVersion.Group},
 			Resources: []string{"proxies"},
-			Verbs:     []string{"watch"},
+			Verbs:     []string{"list", "watch"},
+		},
+		{
+			APIGroups: []string{""},
+			Resources: []string{"events"},
+			Verbs:     []string{"create"},
 		},
 	}
 
@@ -52,6 +59,6 @@ func (b *MinecraftClusterProxyWatchRoleBuilder) Update(object client.Object) err
 	return nil
 }
 
-func (b *MinecraftClusterProxyWatchRoleBuilder) CanBeUpdated() bool {
+func (b *MinecraftClusterProxyRoleBuilder) CanBeUpdated() bool {
 	return true
 }

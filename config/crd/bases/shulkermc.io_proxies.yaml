@@ -23,8 +23,8 @@ spec:
     - jsonPath: .status.conditions[?(@.type=="Ready")].status
       name: Ready
       type: boolean
-    - jsonPath: .status.conditions[?(@.type=="Available")].status
-      name: Available
+    - jsonPath: .status.conditions[?(@.type=="Phase")].reason
+      name: Phase
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -1013,7 +1013,7 @@ spec:
             properties:
               conditions:
                 description: 'Conditions represent the latest available observations
-                  of a Proxy object. Known .status.conditions.type are: "Ready", "Available".'
+                  of a Proxy object. Known .status.conditions.type are: "Ready", "Phase".'
                 items:
                   description: "Condition contains details for one aspect of the current
                     state of this API Resource. --- This struct is intended for direct

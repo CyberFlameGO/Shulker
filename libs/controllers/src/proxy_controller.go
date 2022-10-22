@@ -74,6 +74,12 @@ func (r *ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		return ctrl.Result{}, err
 	}
 
+	if pod.DeletionTimestamp != nil || pod.Status.Phase == corev1.PodSucceeded {
+		logger.Info("Pod is terminating, deleting Proxy")
+		err = r.Delete(ctx, proxy)
+		return ctrl.Result{}, err
+	}
+
 	var readyCondition metav1.Condition
 
 	if err == nil {
@@ -81,7 +87,7 @@ func (r *ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 		for _, condition := range pod.Status.Conditions {
 			if condition.Type == corev1.PodReady {
-				readyCondition = proxy.Status.SetCondition(shulkermciov1alpha1.ProxyReadyCondition, metav1.ConditionStatus(condition.Status), "PodReady", "Pod is ready")
+				readyCondition = proxy.Status.SetCondition(shulkermciov1alpha1.ProxyReadyCondition, metav1.ConditionTrue, "PodReady", "Pod is ready")
 			}
 		}
 	} else {
@@ -89,7 +95,14 @@ func (r *ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 
 	if readyCondition.Status == metav1.ConditionTrue {
-		// proxy.Status.SetCondition(shulkermciov1alpha1.ProxyAvailableCondition, metav1.ConditionTrue, "PodReady", "Pod")
+		if proxy.Annotations[shulkermciov1alpha1.ProxyDrainAnnotationName] == "true" {
+			proxy.Status.SetCondition(shulkermciov1alpha1.ProxyPhaseCondition, metav1.ConditionUnknown, "Draining", "Proxy is drining and do not accept players")
+			proxy.Status.SetCondition(shulkermciov1alpha1.ProxyReadyCondition, metav1.ConditionFalse, "Draining", "Proxy is drining and do not accept players")
+		} else {
+			proxy.Status.SetCondition(shulkermciov1alpha1.ProxyPhaseCondition, metav1.ConditionUnknown, "Running", "Proxy is running")
+		}
+	} else {
+		proxy.Status.SetCondition(shulkermciov1alpha1.ProxyPhaseCondition, metav1.ConditionUnknown, "Unknown", "Proxy status is unknown")
 	}
 
 	return ctrl.Result{}, r.Status().Update(ctx, proxy)

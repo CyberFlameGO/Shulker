@@ -94,15 +94,15 @@ type ProxyPodOverridesSpec struct {
 type ProxyStatusCondition string
 
 const (
-	ProxyReadyCondition     ProxyStatusCondition = "Ready"
-	ProxyAvailableCondition ProxyStatusCondition = "Available"
+	ProxyReadyCondition ProxyStatusCondition = "Ready"
+	ProxyPhaseCondition ProxyStatusCondition = "Phase"
 )
 
 // ProxyStatus defines the observed state of Proxy
 type ProxyStatus struct {
 	// Conditions represent the latest available observations of a
 	// Proxy object.
-	// Known .status.conditions.type are: "Ready", "Available".
+	// Known .status.conditions.type are: "Ready", "Phase".
 	//+kubebuilder:validation:Required
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 }
@@ -122,7 +122,7 @@ func (s *ProxyStatus) SetCondition(condition ProxyStatusCondition, status metav1
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.conditions[?(@.type==\"Ready\")].status"
-//+kubebuilder:printcolumn:name="Available",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].status"
+//+kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.conditions[?(@.type==\"Phase\")].reason"
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 //+kubebuilder:resource:shortName={"skrp"},categories=all
 

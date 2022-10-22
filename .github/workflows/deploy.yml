@@ -81,6 +81,13 @@ jobs:
           java-version: ${{ env.TARGET_JAVA_VERSION }}
           cache: 'gradle'
 
+      - name: Import signing GPG key
+        id: gpg-signing-key
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
       - name: Install Node.js dependencies
         run: npm ci
 
@@ -89,3 +96,4 @@ jobs:
         with:
           targets: publish-maven
           parallel: 3
+          args: -Psigning.gnupg.keyName=${{ steps.gpg-signing-key.outputs.keyid }} -Psigning.gnupg.passphrase=${{ secrets.GPG_PASSPHRASE }}

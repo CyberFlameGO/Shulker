@@ -14,30 +14,30 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-type MinecraftClusterProxyWatchRoleBindingBuilder struct {
+type MinecraftClusterProxyRoleBindingBuilder struct {
 	*MinecraftClusterResourceBuilder
 }
 
-func (b *MinecraftClusterResourceBuilder) MinecraftClusterProxyWatchRoleBinding() *MinecraftClusterProxyWatchRoleBindingBuilder {
-	return &MinecraftClusterProxyWatchRoleBindingBuilder{b}
+func (b *MinecraftClusterResourceBuilder) MinecraftClusterProxyRoleBinding() *MinecraftClusterProxyRoleBindingBuilder {
+	return &MinecraftClusterProxyRoleBindingBuilder{b}
 }
 
-func (b *MinecraftClusterProxyWatchRoleBindingBuilder) Build() (client.Object, error) {
+func (b *MinecraftClusterProxyRoleBindingBuilder) Build() (client.Object, error) {
 	return &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      b.getProxyWatchRoleBindingName(),
+			Name:      b.getProxyRoleBindingName(),
 			Namespace: b.Instance.Namespace,
 			Labels:    b.getLabels(),
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "Role",
-			Name:     b.getProxyWatchRoleName(),
+			Name:     b.getProxyRoleName(),
 		},
 	}, nil
 }
 
-func (b *MinecraftClusterProxyWatchRoleBindingBuilder) Update(object client.Object) error {
+func (b *MinecraftClusterProxyRoleBindingBuilder) Update(object client.Object) error {
 	roleBinding := object.(*rbacv1.RoleBinding)
 
 	roleBinding.Subjects = []rbacv1.Subject{{
@@ -53,6 +53,6 @@ func (b *MinecraftClusterProxyWatchRoleBindingBuilder) Update(object client.Obje
 	return nil
 }
 
-func (b *MinecraftClusterProxyWatchRoleBindingBuilder) CanBeUpdated() bool {
+func (b *MinecraftClusterProxyRoleBindingBuilder) CanBeUpdated() bool {
 	return true
 }
