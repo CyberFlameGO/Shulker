@@ -117,7 +117,7 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 			},
 		},
 		ServiceAccountName: b.getServiceAccountName(),
-		RestartPolicy:      corev1.RestartPolicyOnFailure,
+		RestartPolicy:      corev1.RestartPolicyNever,
 		Volumes: []corev1.Volume{
 			{
 				Name: "proxy-server",
@@ -169,10 +169,10 @@ func (b *ProxyResourcePodBuilder) CanBeUpdated() bool {
 
 func getTypeFromVersionChannel(channel shulkermciov1alpha1.ProxyDeploymentVersionChannel) string {
 	switch channel {
-	case shulkermciov1alpha1.ProxyDeploymentVersionBungeeCord:
-		return "BUNGEECORD"
-	case shulkermciov1alpha1.ProxyDeploymentVersionWaterfall:
-		return "WATERFALL"
+	// case shulkermciov1alpha1.ProxyDeploymentVersionBungeeCord:
+	// 	return "BUNGEECORD"
+	// case shulkermciov1alpha1.ProxyDeploymentVersionWaterfall:
+	// 	return "WATERFALL"
 	case shulkermciov1alpha1.ProxyDeploymentVersionVelocity:
 		return "VELOCITY"
 	}
@@ -182,10 +182,10 @@ func getTypeFromVersionChannel(channel shulkermciov1alpha1.ProxyDeploymentVersio
 
 func getVersionEnvFromVersionChannel(channel shulkermciov1alpha1.ProxyDeploymentVersionChannel) string {
 	switch channel {
-	case shulkermciov1alpha1.ProxyDeploymentVersionBungeeCord:
-		return "BUNGEE_JOB_ID"
-	case shulkermciov1alpha1.ProxyDeploymentVersionWaterfall:
-		return "WATERFALL_BUILD_ID"
+	// case shulkermciov1alpha1.ProxyDeploymentVersionBungeeCord:
+	// 	return "BUNGEE_JOB_ID"
+	// case shulkermciov1alpha1.ProxyDeploymentVersionWaterfall:
+	// 	return "WATERFALL_BUILD_ID"
 	case shulkermciov1alpha1.ProxyDeploymentVersionVelocity:
 		return "VELOCITY_BUILD_ID"
 	}
@@ -210,6 +210,10 @@ func (b *ProxyResourcePodBuilder) getEnv() []corev1.EnvVar {
 					FieldPath: "metadata.name",
 				},
 			},
+		},
+		{
+			Name:  "SHULKER_PROXY_TTL_SECONDS",
+			Value: fmt.Sprintf("%d", b.Instance.Spec.Configuration.TimeToLiveSeconds),
 		},
 		{
 			Name:  "TYPE",

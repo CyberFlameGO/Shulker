@@ -27,8 +27,6 @@ import (
 	resources "github.com/iamblueslime/shulker/libs/resources/src/proxydeployment"
 )
 
-const templateHashLabel = "proxydeployment.shulkermc.io/template-hash"
-
 // ProxyDeploymentReconciler reconciles a ProxyDeployment object
 type ProxyDeploymentReconciler struct {
 	client.Client
@@ -78,31 +76,40 @@ func (r *ProxyDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	if len(allProxies.Items) > int(proxyDeployment.Spec.Replicas) {
-		nbToRemove := len(allProxies.Items) - int(proxyDeployment.Spec.Replicas)
+	templateHash := getProxyTemplateHash(&proxyDeployment.Spec.Template)
+	var oldProxies, matchingProxies []*shulkermciov1alpha1.Proxy
+	var availableReplicas, unavailableReplicas uint
 
-		for i := 0; i < nbToRemove; i += 1 {
-			err = r.Delete(ctx, &allProxies.Items[i])
-			if err != nil {
-				return ctrl.Result{}, err
+	for _, proxy := range allProxies.Items {
+		if proxy.Labels[shulkermciov1alpha1.ProxyDeploymentTemplateHashLabelName] == templateHash {
+			matchingProxies = append(matchingProxies, &proxy)
+		} else {
+			oldProxies = append(oldProxies, &proxy)
+		}
+
+		for _, condition := range proxy.Status.Conditions {
+			if shulkermciov1alpha1.ProxyStatusCondition(condition.Type) == shulkermciov1alpha1.ProxyReadyCondition {
+				if condition.Status == metav1.ConditionTrue {
+					availableReplicas += 1
+				} else {
+					unavailableReplicas += 1
+				}
 			}
 		}
-	} else if len(allProxies.Items) < int(proxyDeployment.Spec.Replicas) {
-		templateHash := getProxyTemplateHash(&proxyDeployment.Spec.Template)
-		matchingProxies, err := r.getMatchingProxies(ctx, proxyDeployment, templateHash)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
+	}
 
-		proxiesToCreate := int(proxyDeployment.Spec.Replicas) - len(matchingProxies.Items)
+	if len(matchingProxies) < int(proxyDeployment.Spec.Replicas) {
+		proxiesToCreate := int(proxyDeployment.Spec.Replicas) - len(matchingProxies)
+
 		for i := 0; i < proxiesToCreate; i += 1 {
 			proxyId := common.RandomResourceId(6)
 			proxy := shulkermciov1alpha1.Proxy{}
 
-			labels := r.getProxyLabelsWithTemplateHash(proxyDeployment, templateHash)
+			labels := r.getProxyLabels(proxyDeployment)
 			for k, v := range proxyDeployment.Spec.Template.Labels {
 				labels[k] = v
 			}
+			labels[shulkermciov1alpha1.ProxyDeploymentTemplateHashLabelName] = templateHash
 
 			proxy.Namespace = proxyDeployment.Namespace
 			proxy.Name = fmt.Sprintf("%s-%s-%s", proxyDeployment.Name, templateHash, proxyId)
@@ -125,19 +132,17 @@ func (r *ProxyDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		}
 	}
 
-	allProxies, err = r.getAllProxies(ctx, proxyDeployment)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
+	if len(oldProxies) > 0 {
+		for _, proxy := range oldProxies {
+			if proxy.Annotations == nil {
+				proxy.Annotations = make(map[string]string)
+			}
 
-	availableReplicas, unavailableReplicas := 0, 0
-	for _, proxy := range allProxies.Items {
-		for _, condition := range proxy.Status.Conditions {
-			if shulkermciov1alpha1.ProxyStatusCondition(condition.Type) == shulkermciov1alpha1.ProxyReadyCondition {
-				if condition.Status == metav1.ConditionTrue {
-					availableReplicas += 1
-				} else {
-					unavailableReplicas += 1
+			if proxy.Annotations[shulkermciov1alpha1.ProxyDrainAnnotationName] != "true" {
+				proxy.Annotations[shulkermciov1alpha1.ProxyDrainAnnotationName] = "true"
+				err = r.Update(ctx, proxy)
+				if err != nil {
+					return ctrl.Result{}, err
 				}
 			}
 		}
@@ -176,22 +181,9 @@ func (r *ProxyDeploymentReconciler) getProxyLabels(deployment *shulkermciov1alph
 	return labels
 }
 
-func (r *ProxyDeploymentReconciler) getProxyLabelsWithTemplateHash(deployment *shulkermciov1alpha1.ProxyDeployment, templateHash string) map[string]string {
-	labels := r.getProxyLabels(deployment)
-	labels[templateHashLabel] = templateHash
-	return labels
-}
-
 func (r *ProxyDeploymentReconciler) getAllProxies(ctx context.Context, deployment *shulkermciov1alpha1.ProxyDeployment) (*shulkermciov1alpha1.ProxyList, error) {
 	list := shulkermciov1alpha1.ProxyList{}
 	err := r.List(ctx, &list, client.InNamespace(deployment.Namespace), client.MatchingLabels(r.getProxyLabels(deployment)))
-
-	return &list, err
-}
-
-func (r *ProxyDeploymentReconciler) getMatchingProxies(ctx context.Context, deployment *shulkermciov1alpha1.ProxyDeployment, templateHash string) (*shulkermciov1alpha1.ProxyList, error) {
-	list := shulkermciov1alpha1.ProxyList{}
-	err := r.List(ctx, &list, client.InNamespace(deployment.Namespace), client.MatchingLabels(r.getProxyLabelsWithTemplateHash(deployment, templateHash)))
 
 	return &list, err
 }

@@ -38,16 +38,16 @@ type ProxySpec struct {
 type ProxyDeploymentVersionChannel string
 
 const (
-	ProxyDeploymentVersionBungeeCord ProxyDeploymentVersionChannel = "BungeeCord"
-	ProxyDeploymentVersionWaterfall  ProxyDeploymentVersionChannel = "Waterfall"
-	ProxyDeploymentVersionVelocity   ProxyDeploymentVersionChannel = "Velocity"
+	// ProxyDeploymentVersionBungeeCord ProxyDeploymentVersionChannel = "BungeeCord"
+	// ProxyDeploymentVersionWaterfall  ProxyDeploymentVersionChannel = "Waterfall"
+	ProxyDeploymentVersionVelocity ProxyDeploymentVersionChannel = "Velocity"
 )
 
 // Defines the version of the proxy to run.
 type ProxyVersionSpec struct {
 	// Channel of the version to use. Defaults to BungeeCord.
 	//+optional
-	//+kubebuilder:default=BungeeCord
+	//+kubebuilder:default=Velocity
 	Channel ProxyDeploymentVersionChannel `json:"channel,omitempty"`
 
 	// Name of the version to use.
@@ -77,6 +77,11 @@ type ProxyConfigurationSpec struct {
 	// Whether to enable the PROXY protocol.
 	//+kubebuilder:default=false
 	ProxyProtocol bool `json:"proxyProtocol,omitempty"`
+
+	// Number of seconds the proxy will live before being
+	// drained automatically.
+	//+kubebuilder:default=86400
+	TimeToLiveSeconds int32 `json:"ttlSeconds,omitempty"`
 }
 
 // Overrides for the created Pod of the proxy.

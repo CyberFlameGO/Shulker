@@ -11,6 +11,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const ProxyDeploymentTemplateHashLabelName = "proxydeployment.shulkermc.io/template-hash"
+
 // ProxyDeploymentSpec defines the desired state of ProxyDeployment
 type ProxyDeploymentSpec struct {
 	// Reference to a MinecraftCluster. Adding this will enroll

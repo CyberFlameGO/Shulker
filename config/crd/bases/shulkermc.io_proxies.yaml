@@ -83,6 +83,12 @@ spec:
                   serverIcon:
                     description: Server icon image in base64 format.
                     type: string
+                  ttlSeconds:
+                    default: 86400
+                    description: Number of seconds the proxy will live before being
+                      drained automatically.
+                    format: int32
+                    type: integer
                 type: object
               podOverrides:
                 description: Overrides for values to be injected in the created Pod
@@ -994,7 +1000,7 @@ spec:
                   from the default BungeeCord.
                 properties:
                   channel:
-                    default: BungeeCord
+                    default: Velocity
                     description: Channel of the version to use. Defaults to BungeeCord.
                     enum:
                     - BungeeCord

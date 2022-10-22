@@ -1,107 +1,84 @@
 package io.shulkermc.proxyagent.features.drain
 
+import com.velocitypowered.api.event.PostOrder
+import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.connection.PreLoginEvent
 import io.shulkermc.proxyagent.ShulkerProxyAgent
 import io.shulkermc.proxyagent.adapters.filesystem.FileSystemAdapter
 import io.shulkermc.proxyagent.adapters.kubernetes.KubernetesGatewayAdapter
 import io.shulkermc.proxyagent.adapters.kubernetes.WatchAction
 import io.shulkermc.proxyagent.common.createDisconnectMessage
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.ProxyServer
-import net.md_5.bungee.api.event.ServerConnectEvent
-import net.md_5.bungee.api.plugin.Listener
-import net.md_5.bungee.event.EventHandler
-import net.md_5.bungee.event.EventPriority
+import net.kyori.adventure.text.format.NamedTextColor
 import java.io.IOException
 import java.util.concurrent.TimeUnit
-import java.util.logging.Logger
 
 private var PROXY_DRAIN_ANNOTATION = "proxy.shulkermc.io/drain"
 
-private var DRAIN_DELAY_SECONDS = 10L
-private var STOP_IF_EMPTY_DELAY_SECONDS = 30L
-private var STOP_FORCE_DELAY_SECONDS = 60L * 60L * 3L
-
 private var MSG_NOT_ACCEPTING_PLAYERS = createDisconnectMessage(
     "Proxy is not accepting players, try reconnect.",
-    ChatColor.RED)
+    NamedTextColor.RED)
 
 class DrainFeature(
-        private val plugin: ShulkerProxyAgent,
+        private val agent: ShulkerProxyAgent,
         private val fileSystem: FileSystemAdapter,
-        private val kubernetesGateway: KubernetesGatewayAdapter
-): Listener {
-    private val logger: Logger = plugin.logger
-    private val proxyServer: ProxyServer = plugin.proxy
-
+        private val kubernetesGateway: KubernetesGatewayAdapter,
+        private val ttlSeconds: Long
+) {
     private var acceptingPlayers = true
     private var drained = false
 
     init {
-        this.proxyServer.pluginManager.registerListener(plugin, this)
+        this.agent.server.eventManager.register(agent.plugin, this)
 
-        this.proxyServer.scheduler.runAsync(plugin, Runnable {
-            kubernetesGateway.watchProxyEvent { action, proxy ->
-                if (action == WatchAction.MODIFIED) {
-                    this.logger.info("Detected modification on Kubernetes Proxy")
+        kubernetesGateway.watchProxyEvent { action, proxy ->
+            if (action == WatchAction.MODIFIED) {
+                this.agent.logger.info("Detected modification on Kubernetes Proxy")
 
-                    val annotations: Map<String, String> = proxy.metadata.annotations
-                        ?: return@watchProxyEvent
+                val annotations: Map<String, String> = proxy.metadata.annotations
+                    ?: return@watchProxyEvent
 
-                    if (annotations.containsKey(PROXY_DRAIN_ANNOTATION)) {
-                        val drainValue = annotations[PROXY_DRAIN_ANNOTATION]
-
-                        this.logger.info(String.format("Found drain annotation: %s=%b", PROXY_DRAIN_ANNOTATION, drainValue))
-
-                        if (drainValue == "true") {
-                            this.logger.info("Invoking drain callbacks")
-                            this.drain()
-                        }
-                    }
-                }
+                if (annotations.containsKey(PROXY_DRAIN_ANNOTATION))
+                    if (annotations[PROXY_DRAIN_ANNOTATION] == "true")
+                        this.drain()
             }
-        })
+        }
+
+        this.agent.logger.info("Proxy will be force stopped in ${this.ttlSeconds} seconds")
+        this.agent.server.scheduler.buildTask(this.agent.plugin) {
+            this.agent.server.shutdown()
+        }.delay(this.ttlSeconds, TimeUnit.SECONDS).schedule()
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    fun onServerConnect(event: ServerConnectEvent) {
-        if (!this.acceptingPlayers) {
-            event.player.disconnect(*MSG_NOT_ACCEPTING_PLAYERS)
-            event.isCancelled = true
-        }
+    @Subscribe(order = PostOrder.FIRST)
+    fun onPreLogin(event: PreLoginEvent) {
+        if (!this.acceptingPlayers)
+            event.result = PreLoginEvent.PreLoginComponentResult.denied(MSG_NOT_ACCEPTING_PLAYERS)
     }
 
     private fun drain() {
         if (this.drained)
-            return;
-        this.drained = true;
+            return
+        this.drained = true
 
-        this.logger.info("Proxy will be force stopped in $STOP_FORCE_DELAY_SECONDS seconds")
+        try {
+            this.fileSystem.createDrainFile()
+            this.acceptingPlayers = false
+            this.kubernetesGateway.emitNotAcceptingPlayers()
+        } catch (e: IOException) {
+            throw RuntimeException(e)
+        }
 
-        this.proxyServer.scheduler.schedule(this.plugin, {
-            this.logger.info("Proxy is no longer accepting players");
+        this.agent.logger.info("Proxy is no longer accepting players");
 
-            try {
-                this.fileSystem.createDrainFile()
-                this.acceptingPlayers = false;
-                this.kubernetesGateway.emitNotAcceptingPlayers()
-            } catch (e: IOException) {
-                throw RuntimeException(e)
-            }
-        }, DRAIN_DELAY_SECONDS, TimeUnit.SECONDS)
+        this.agent.server.scheduler.buildTask(this.agent.plugin) {
+            val playerCount = this.agent.server.playerCount
 
-        this.proxyServer.scheduler.schedule(this.plugin, {
-            val playersLeft = this.proxyServer.players.size
-
-            if (playersLeft == 0) {
-                this.logger.info("Proxy is empty, stopping")
-                this.proxyServer.stop()
+            if (playerCount == 0) {
+                this.agent.logger.info("Proxy is empty, stopping")
+                this.agent.server.shutdown()
             } else {
-                this.logger.info(String.format("There are still %d players connected, waiting", playersLeft))
+                this.agent.logger.info(String.format("There are still %d players connected, waiting", playerCount))
             }
-        }, STOP_IF_EMPTY_DELAY_SECONDS, STOP_IF_EMPTY_DELAY_SECONDS, TimeUnit.SECONDS)
-
-        this.proxyServer.scheduler.schedule(this.plugin, {
-            this.proxyServer.stop()
-        }, STOP_FORCE_DELAY_SECONDS, TimeUnit.SECONDS)
+        }.repeat(30L, TimeUnit.SECONDS).schedule()
     }
 }

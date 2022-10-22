@@ -12,8 +12,8 @@ spec:
   template:
     spec:
       version:
-        channel: BungeeCord
-        name: lastStableBuild
+        channel: Velocity
+        name: latest
       config:
         maxPlayers: 100
       podOverrides:

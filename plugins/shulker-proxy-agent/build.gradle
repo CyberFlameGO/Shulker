@@ -3,13 +3,15 @@ version = '0.0.1'
 
 repositories {
     maven {
-        name = 'bungeecord-repo'
-        url = 'https://oss.sonatype.org/content/repositories/snapshots'
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
     }
 }
 
 dependencies {
-    compileOnly group: 'net.md-5', name: 'bungeecord-api', version: '1.19-R0.1-SNAPSHOT'
+    compileOnly 'com.velocitypowered:velocity-api:3.1.1'
+    annotationProcessor 'com.velocitypowered:velocity-api:3.1.1'
+
     compileOnly 'io.fabric8:kubernetes-client-api:6.2.0'
     runtimeOnly 'io.fabric8:kubernetes-client:6.2.0'
     implementation 'io.fabric8:kubernetes-httpclient-okhttp:6.2.0'
