@@ -28,4 +28,20 @@ resources:
   kind: ProxyDeployment
   path: github.com/iamblueslime/shulker/libs/crds/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: shulkermc.io
+  kind: MinecraftServer
+  path: github.com/iamblueslime/shulker/libs/crds/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: shulkermc.io
+  kind: MinecraftServerDeployment
+  path: github.com/iamblueslime/shulker/libs/crds/v1alpha1
+  version: v1alpha1
 version: "3"

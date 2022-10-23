@@ -34,8 +34,6 @@ func (b *MinecraftClusterProxyRoleBuilder) Build() (client.Object, error) {
 	}, nil
 }
 
-// io.fabric8.kubernetes.client.KubernetesClientException: Failure executing: GET at: https://10.128.64.1/apis/shulkermc.io/v1alpha1/proxies?fieldSelector=metadata.name%3Dpublic-7f96749547-mxlfje
-
 func (b *MinecraftClusterProxyRoleBuilder) Update(object client.Object) error {
 	role := object.(*rbacv1.Role)
 
@@ -43,6 +41,11 @@ func (b *MinecraftClusterProxyRoleBuilder) Update(object client.Object) error {
 		{
 			APIGroups: []string{shulkermciov1alpha1.GroupVersion.Group},
 			Resources: []string{"proxies"},
+			Verbs:     []string{"list", "watch"},
+		},
+		{
+			APIGroups: []string{shulkermciov1alpha1.GroupVersion.Group},
+			Resources: []string{"minecraftservers"},
 			Verbs:     []string{"list", "watch"},
 		},
 		{

@@ -12,18 +12,20 @@ import net.kyori.adventure.text.format.NamedTextColor
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-private var PROXY_DRAIN_ANNOTATION = "proxy.shulkermc.io/drain"
-
-private var MSG_NOT_ACCEPTING_PLAYERS = createDisconnectMessage(
-    "Proxy is not accepting players, try reconnect.",
-    NamedTextColor.RED)
-
 class DrainFeature(
         private val agent: ShulkerProxyAgent,
         private val fileSystem: FileSystemAdapter,
         private val kubernetesGateway: KubernetesGatewayAdapter,
         private val ttlSeconds: Long
 ) {
+    companion object {
+        const val PROXY_DRAIN_ANNOTATION = "proxy.shulkermc.io/drain"
+
+        val MSG_NOT_ACCEPTING_PLAYERS = createDisconnectMessage(
+            "Proxy is not accepting players, try reconnect.",
+            NamedTextColor.RED)
+    }
+
     private var acceptingPlayers = true
     private var drained = false
 
@@ -31,9 +33,9 @@ class DrainFeature(
         this.agent.server.eventManager.register(agent.plugin, this)
 
         kubernetesGateway.watchProxyEvent { action, proxy ->
-            if (action == WatchAction.MODIFIED) {
-                this.agent.logger.info("Detected modification on Kubernetes Proxy")
+            this.agent.logger.fine("Detected modification on Kubernetes Proxy ${proxy.metadata.name}")
 
+            if (action == WatchAction.MODIFIED) {
                 val annotations: Map<String, String> = proxy.metadata.annotations
                     ?: return@watchProxyEvent
 

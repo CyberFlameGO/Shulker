@@ -2,9 +2,11 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/shulkermc.io_proxies.yaml
 - bases/shulkermc.io_minecraftclusters.yaml
+- bases/shulkermc.io_proxies.yaml
 - bases/shulkermc.io_proxydeployments.yaml
+- bases/shulkermc.io_minecraftservers.yaml
+- bases/shulkermc.io_minecraftserverdeployments.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

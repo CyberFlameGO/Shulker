@@ -16,8 +16,9 @@ import (
 	shulkermciov1alpha1 "github.com/iamblueslime/shulker/libs/crds/v1alpha1"
 )
 
-const proxyConfigDir = "/config"
-const proxyServerDir = "/server"
+const proxyShulkerConfigDir = "/mnt/shulker/config"
+const proxyShulkerForwardingSecretDir = "/mnt/shulker/forwarding-secret"
+const proxyDataDir = "/server"
 const proxyDrainLockDir = "/mnt/drain-lock"
 
 type ProxyResourcePodBuilder struct {
@@ -46,27 +47,31 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 			{
 				Image:   "alpine:latest",
 				Name:    "init-fs",
-				Command: []string{"sh", fmt.Sprintf("%s/init-fs.sh", proxyConfigDir)},
+				Command: []string{"sh", fmt.Sprintf("%s/init-fs.sh", proxyShulkerConfigDir)},
 				Env: []corev1.EnvVar{
 					{
 						Name:  "SHULKER_CONFIG_DIR",
-						Value: proxyConfigDir,
+						Value: proxyShulkerConfigDir,
 					},
 					{
-						Name:  "SHULKER_DATA_DIR",
-						Value: proxyServerDir,
+						Name:  "PROXY_DATA_DIR",
+						Value: proxyDataDir,
+					},
+					{
+						Name:  "TYPE",
+						Value: getTypeFromVersionChannel(b.Instance.Spec.Version.Channel),
 					},
 				},
 				SecurityContext: b.getSecurityContext(),
 				VolumeMounts: []corev1.VolumeMount{
 					{
-						Name:      "proxy-server",
-						MountPath: proxyServerDir,
+						Name:      "shulker-config",
+						MountPath: proxyShulkerConfigDir,
+						ReadOnly:  true,
 					},
 					{
-						Name:      "proxy-config",
-						MountPath: proxyConfigDir,
-						ReadOnly:  true,
+						Name:      "proxy-data",
+						MountPath: proxyDataDir,
 					},
 				},
 			},
@@ -92,7 +97,7 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 				ReadinessProbe: &corev1.Probe{
 					ProbeHandler: corev1.ProbeHandler{
 						Exec: &corev1.ExecAction{
-							Command: []string{"bash", fmt.Sprintf("%s/probe-readiness.sh", proxyServerDir)},
+							Command: []string{"bash", fmt.Sprintf("%s/probe-readiness.sh", proxyDataDir)},
 						},
 					},
 					InitialDelaySeconds: 10,
@@ -101,8 +106,13 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 				SecurityContext: b.getSecurityContext(),
 				VolumeMounts: []corev1.VolumeMount{
 					{
-						Name:      "proxy-server",
-						MountPath: proxyServerDir,
+						Name:      "shulker-forwarding-secret",
+						MountPath: proxyShulkerForwardingSecretDir,
+						ReadOnly:  true,
+					},
+					{
+						Name:      "proxy-data",
+						MountPath: proxyDataDir,
 					},
 					{
 						Name:      "proxy-drain-lock",
@@ -120,19 +130,27 @@ func (b *ProxyResourcePodBuilder) Update(object client.Object) error {
 		RestartPolicy:      corev1.RestartPolicyNever,
 		Volumes: []corev1.Volume{
 			{
-				Name: "proxy-server",
-				VolumeSource: corev1.VolumeSource{
-					EmptyDir: &corev1.EmptyDirVolumeSource{},
-				},
-			},
-			{
-				Name: "proxy-config",
+				Name: "shulker-config",
 				VolumeSource: corev1.VolumeSource{
 					ConfigMap: &corev1.ConfigMapVolumeSource{
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: b.GetConfigMapName(),
 						},
 					},
+				},
+			},
+			{
+				Name: "shulker-forwarding-secret",
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: fmt.Sprintf("%s-forwarding-secret", b.Instance.Spec.ClusterRef.Name),
+					},
+				},
+			},
+			{
+				Name: "proxy-data",
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{},
 				},
 			},
 			{
@@ -167,26 +185,26 @@ func (b *ProxyResourcePodBuilder) CanBeUpdated() bool {
 	return false
 }
 
-func getTypeFromVersionChannel(channel shulkermciov1alpha1.ProxyDeploymentVersionChannel) string {
+func getTypeFromVersionChannel(channel shulkermciov1alpha1.ProxyVersionChannel) string {
 	switch channel {
-	// case shulkermciov1alpha1.ProxyDeploymentVersionBungeeCord:
-	// 	return "BUNGEECORD"
-	// case shulkermciov1alpha1.ProxyDeploymentVersionWaterfall:
-	// 	return "WATERFALL"
-	case shulkermciov1alpha1.ProxyDeploymentVersionVelocity:
+	case shulkermciov1alpha1.ProxyVersionBungeeCord:
+		return "BUNGEECORD"
+	case shulkermciov1alpha1.ProxyVersionWaterfall:
+		return "WATERFALL"
+	case shulkermciov1alpha1.ProxyVersionVelocity:
 		return "VELOCITY"
 	}
 
 	return ""
 }
 
-func getVersionEnvFromVersionChannel(channel shulkermciov1alpha1.ProxyDeploymentVersionChannel) string {
+func getVersionEnvFromVersionChannel(channel shulkermciov1alpha1.ProxyVersionChannel) string {
 	switch channel {
-	// case shulkermciov1alpha1.ProxyDeploymentVersionBungeeCord:
-	// 	return "BUNGEE_JOB_ID"
-	// case shulkermciov1alpha1.ProxyDeploymentVersionWaterfall:
-	// 	return "WATERFALL_BUILD_ID"
-	case shulkermciov1alpha1.ProxyDeploymentVersionVelocity:
+	case shulkermciov1alpha1.ProxyVersionBungeeCord:
+		return "BUNGEE_JOB_ID"
+	case shulkermciov1alpha1.ProxyVersionWaterfall:
+		return "WATERFALL_BUILD_ID"
+	case shulkermciov1alpha1.ProxyVersionVelocity:
 		return "VELOCITY_BUILD_ID"
 	}
 

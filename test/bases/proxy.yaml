@@ -1,7 +1,7 @@
 apiVersion: shulkermc.io/v1alpha1
 kind: ProxyDeployment
 metadata:
-  name: public
+  name: proxy
 spec:
   clusterRef:
     name: my-cluster

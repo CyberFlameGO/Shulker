@@ -35,12 +35,12 @@ type ProxySpec struct {
 }
 
 // +kubebuilder:validation:Enum=BungeeCord;Waterfall;Velocity
-type ProxyDeploymentVersionChannel string
+type ProxyVersionChannel string
 
 const (
-	// ProxyDeploymentVersionBungeeCord ProxyDeploymentVersionChannel = "BungeeCord"
-	// ProxyDeploymentVersionWaterfall  ProxyDeploymentVersionChannel = "Waterfall"
-	ProxyDeploymentVersionVelocity ProxyDeploymentVersionChannel = "Velocity"
+	ProxyVersionBungeeCord ProxyVersionChannel = "BungeeCord"
+	ProxyVersionWaterfall  ProxyVersionChannel = "Waterfall"
+	ProxyVersionVelocity   ProxyVersionChannel = "Velocity"
 )
 
 // Defines the version of the proxy to run.
@@ -48,7 +48,7 @@ type ProxyVersionSpec struct {
 	// Channel of the version to use. Defaults to BungeeCord.
 	//+optional
 	//+kubebuilder:default=Velocity
-	Channel ProxyDeploymentVersionChannel `json:"channel,omitempty"`
+	Channel ProxyVersionChannel `json:"channel,omitempty"`
 
 	// Name of the version to use.
 	//+kubebuilder:validation:Required

@@ -119,5 +119,6 @@ func (r *ProxyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&shulkermciov1alpha1.Proxy{}).
 		Owns(&corev1.Pod{}).
+		Owns(&corev1.ConfigMap{}).
 		Complete(r)
 }

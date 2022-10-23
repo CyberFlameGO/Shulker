@@ -30,6 +30,46 @@ rules:
 - apiGroups:
   - shulkermc.io
   resources:
+  - minecraftserverdeployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - shulkermc.io
+  resources:
+  - minecraftserverdeployments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - shulkermc.io
+  resources:
+  - minecraftservers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - shulkermc.io
+  resources:
+  - minecraftservers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - shulkermc.io
+  resources:
   - proxies
   verbs:
   - create
