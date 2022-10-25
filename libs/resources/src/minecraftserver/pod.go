@@ -88,24 +88,24 @@ func (b *MinecraftServerResourcePodBuilder) Update(object client.Object) error {
 					ContainerPort: 25565,
 				}},
 				Env: b.getEnv(),
-				// LivenessProbe: &corev1.Probe{
-				// 	ProbeHandler: corev1.ProbeHandler{
-				// 		Exec: &corev1.ExecAction{
-				// 			Command: []string{"bash", "/health.sh"},
-				// 		},
-				// 	},
-				// 	InitialDelaySeconds: 10,
-				// 	PeriodSeconds:       10,
-				// },
-				// ReadinessProbe: &corev1.Probe{
-				// 	ProbeHandler: corev1.ProbeHandler{
-				// 		Exec: &corev1.ExecAction{
-				// 			Command: []string{"bash", fmt.Sprintf("%s/probe-readiness.sh", minecraftServerServerDir)},
-				// 		},
-				// 	},
-				// 	InitialDelaySeconds: 10,
-				// 	PeriodSeconds:       10,
-				// },
+				LivenessProbe: &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						Exec: &corev1.ExecAction{
+							Command: []string{"bash", "/health.sh"},
+						},
+					},
+					InitialDelaySeconds: 60,
+					PeriodSeconds:       10,
+				},
+				ReadinessProbe: &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						Exec: &corev1.ExecAction{
+							Command: []string{"bash", "/health.sh"},
+						},
+					},
+					InitialDelaySeconds: 60,
+					PeriodSeconds:       10,
+				},
 				SecurityContext: b.getSecurityContext(),
 				VolumeMounts: []corev1.VolumeMount{
 					{

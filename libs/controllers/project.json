@@ -13,5 +13,7 @@
         "cwd": "libs/controllers"
       }
     }
-  }
+  },
+  "tags": ["lang:go"],
+  "implicitDependencies": ["libs-crds"]
 }

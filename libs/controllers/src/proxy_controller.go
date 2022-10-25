@@ -86,7 +86,7 @@ func (r *ProxyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		readyCondition = proxy.Status.SetCondition(shulkermciov1alpha1.ProxyReadyCondition, metav1.ConditionFalse, "PodNotReady", "Pod is not ready")
 
 		for _, condition := range pod.Status.Conditions {
-			if condition.Type == corev1.PodReady {
+			if condition.Type == corev1.PodReady && condition.Status == corev1.ConditionTrue {
 				readyCondition = proxy.Status.SetCondition(shulkermciov1alpha1.ProxyReadyCondition, metav1.ConditionTrue, "PodReady", "Pod is ready")
 			}
 		}

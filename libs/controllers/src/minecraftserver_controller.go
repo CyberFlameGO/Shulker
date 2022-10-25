@@ -88,7 +88,7 @@ func (r *MinecraftServerReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		readyCondition = minecraftServer.Status.SetCondition(shulkermciov1alpha1.MinecraftServerReadyCondition, metav1.ConditionFalse, "PodNotReady", "Pod is not ready")
 
 		for _, condition := range pod.Status.Conditions {
-			if condition.Type == corev1.PodReady {
+			if condition.Type == corev1.PodReady && condition.Status == corev1.ConditionTrue {
 				readyCondition = minecraftServer.Status.SetCondition(shulkermciov1alpha1.MinecraftServerReadyCondition, metav1.ConditionTrue, "PodReady", "Pod is ready")
 			}
 		}

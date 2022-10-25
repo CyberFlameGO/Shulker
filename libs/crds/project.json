@@ -13,5 +13,6 @@
         "cwd": "libs/crds"
       }
     }
-  }
+  },
+  "tags": ["lang:go"]
 }

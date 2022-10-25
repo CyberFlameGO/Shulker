@@ -3,7 +3,7 @@ plugins {
 }
 
 configure(subprojects.findAll {
-    !['plugins'].contains(it.name)
+    !['support'].contains(it.name)
 }) {
     apply plugin: 'java'
     apply plugin: 'org.jetbrains.kotlin.jvm'
@@ -14,7 +14,7 @@ configure(subprojects.findAll {
 
     group = 'io.shulkermc'
 
-    it.buildDir = "$rootDir/dist/plugins/$it.name"
+    it.buildDir = "$rootDir/dist/support/$it.name"
 
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
     compileJava.options.encoding = 'UTF-8'
@@ -26,11 +26,6 @@ configure(subprojects.findAll {
 
     dependencies {
         testImplementation 'junit:junit:4.13.2'
-    }
-
-    java {
-        withJavadocJar()
-        withSourcesJar()
     }
 
     publishing {
@@ -93,11 +88,4 @@ configure(subprojects.findAll {
         useGpgCmd()
         sign publishing.publications.mavenJava
     }
-
-    javadoc {
-        if(JavaVersion.current().isJava9Compatible()) {
-            options.addBooleanOption('html5', true)
-        }
-    }
 }
-

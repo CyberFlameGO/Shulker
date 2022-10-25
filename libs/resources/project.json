@@ -13,5 +13,7 @@
         "cwd": "libs/resources"
       }
     }
-  }
+  },
+  "tags": ["lang:go"],
+  "implicitDependencies": ["libs-crds"]
 }
