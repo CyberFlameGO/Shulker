@@ -46,7 +46,7 @@ jobs:
         id: docker-metadata
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/iamblueslime/##SHULKER_APP##
+          images: ghcr.io/iamblueslime/SHULKER_APP
           sep-tags: ";;;"
           sep-labels: ";;;"
           tags: |
@@ -68,6 +68,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Use Node.js ${{ env.TARGET_NODE_VERSION }}
         uses: actions/setup-node@v3

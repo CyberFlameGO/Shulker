@@ -4,7 +4,7 @@ app="$1"
 tags="$2"
 labels="$3"
 
-tags="$(echo "${tags}" | sed "s/##SHULKER_APP##/${app}/g")"
+tags="$(echo "${tags}" | sed "s/SHULKER_APP/${app}/g")"
 if [ "${tags}" != "" ]; then
   tags_params="--tag $(echo "${tags}" | sed "s/;;;/ --tag /g")"
 fi
