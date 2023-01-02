@@ -3,7 +3,7 @@ module github.com/iamblueslime/shulker
 go 1.19
 
 require (
-	github.com/onsi/ginkgo/v2 v2.6.0
+	github.com/onsi/ginkgo/v2 v2.6.1
 	github.com/onsi/gomega v1.24.1
 	github.com/pelletier/go-toml/v2 v2.0.6
 	gopkg.in/yaml.v2 v2.4.0
